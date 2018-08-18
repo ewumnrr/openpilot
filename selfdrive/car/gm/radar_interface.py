@@ -96,7 +96,7 @@ class RadarInterface(object):
         if targetId not in self.pts:
           self.pts[targetId] = car.RadarState.RadarPoint.new_message()
           self.pts[targetId].trackId = targetId
-        distance = cpt['TrkRange']
+        distance = cpt['TrkRange'] * 1.1
         self.pts[targetId].dRel = distance # from front of car
         # From driver's pov, left is positive
         deg_to_rad = np.pi/180.
