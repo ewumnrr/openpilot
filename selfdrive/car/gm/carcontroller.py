@@ -155,7 +155,7 @@ class CarController(object):
 
         want_full_stop = enabled and CS.standstill and apply_gas < 2048
         near_stop = enabled and (CS.v_ego < P.NEAR_STOP_BRAKE_PHASE)
-        can_sends.append(gmcan.create_friction_brake_command(self.packer_ch, canbus.chassis, apply_brake, idx, near_stop, want_full_stop))
+        can_sends.append(gmcan.create_friction_brake_command(self.packer_ch, canbus.chassis, apply_brake, idx, near_stop, want_full_stop, self.intense_braking))
 
         can_sends.append(gmcan.create_gas_regen_command(self.packer_pt, canbus.powertrain, apply_gas, idx, enabled, want_full_stop))
 
