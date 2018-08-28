@@ -79,7 +79,7 @@ class CarInterface(object):
 
     if candidate == CAR.VOLT:
       # supports stop and go, but initial engage must be above 18mph (which include conservatism)
-      ret.minEnableSpeed = -1
+      ret.minEnableSpeed = 7 * CV.MPH_TO_MS
       # kg of standard extra cargo to count for drive, gas, etc...
       ret.mass = 1607 + std_cargo
       ret.safetyModel = car.CarParams.SafetyModels.gm
