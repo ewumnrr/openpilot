@@ -230,7 +230,7 @@ def state_control(plan, CS, CP, state, events, v_cruise_kph, v_cruise_kph_last, 
   # reset actuators to zero
   actuators = car.CarControl.Actuators.new_message()
 
-  enabled = isEnabled(state)
+  enabled = isActive(state)
   active = isActive(state)
 
   # check if user has interacted with the car
