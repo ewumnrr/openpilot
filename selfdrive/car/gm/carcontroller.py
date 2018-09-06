@@ -65,7 +65,6 @@ class CarController(object):
     self.steer_idx = 0
     self.apply_steer_last = 0
     self.car_fingerprint = car_fingerprint
-    self.enabled_last = False
     self.intense_braking = False
     self.allow_controls = allow_controls
 
@@ -139,10 +138,6 @@ class CarController(object):
 
       # Gas/regen and brakes - all at 25Hz
       if (frame % 4) == 0:
-        if not self.enabled_last and enabled:
-          apply_gas = max(apply_gas, P.MAX_GAS) # We need the first gas packet to force PCM to engage ACC mode. Otherwise we "stall" acceleration out
-        self.enabled_last = enabled
-
         idx = (frame / 4) % 4
 
         want_full_stop = enabled and CS.standstill and apply_gas < 2048
