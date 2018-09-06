@@ -1,7 +1,8 @@
-from common.numpy_fast import clip, interp
+from common.numpy_fast import interp
 from common.realtime import sec_since_boot
 from selfdrive.config import Conversions as CV
 from selfdrive.boardd.boardd import can_list_to_can_capnp
+from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.gm import gmcan
 from selfdrive.car.gm.values import CAR, DBC
 from selfdrive.can.packer import CANPacker
@@ -55,7 +56,7 @@ def actuator_hystereses(final_pedal, pedal_steady):
 
 
 class CarController(object):
-  def __init__(self, canbus, car_fingerprint):
+  def __init__(self, canbus, car_fingerprint, allow_controls):
     self.pedal_steady = 0.
     self.start_time = sec_since_boot()
     self.chime = 0
@@ -66,6 +67,7 @@ class CarController(object):
     self.car_fingerprint = car_fingerprint
     self.enabled_last = False
     self.intense_braking = False
+    self.allow_controls = allow_controls
 
     # Setup detection helper. Routes commands to
     # an appropriate CAN bus number.
@@ -79,6 +81,10 @@ class CarController(object):
              hud_v_cruise, hud_show_lanes, hud_show_car, chime, chime_cnt):
     """ Controls thread """
 
+    # Sanity check.
+    if not self.allow_controls:
+      return
+
     P = self.params
 
     # Send CAN commands.
@@ -91,27 +97,13 @@ class CarController(object):
       final_steer = actuators.steer if enabled else 0.
       apply_steer = final_steer * P.STEER_MAX
 
-      # limits due to driver torque
-      driver_max_torque = P.STEER_MAX + (P.STEER_DRIVER_ALLOWANCE + CS.steer_torque_driver * P.STEER_DRIVER_FACTOR) * P.STEER_DRIVER_MULTIPLIER
-      driver_min_torque = -P.STEER_MAX + (-P.STEER_DRIVER_ALLOWANCE + CS.steer_torque_driver * P.STEER_DRIVER_FACTOR) * P.STEER_DRIVER_MULTIPLIER
-      max_steer_allowed = max(min(P.STEER_MAX, driver_max_torque), 0)
-      min_steer_allowed = min(max(-P.STEER_MAX, driver_min_torque), 0)
-      apply_steer = clip(apply_steer, min_steer_allowed, max_steer_allowed)
-
-      # slow rate if steer torque increases in magnitude
-      if self.apply_steer_last > 0:
-        apply_steer = clip(apply_steer, max(self.apply_steer_last - P.STEER_DELTA_DOWN, -P.STEER_DELTA_UP),
-                                        self.apply_steer_last + P.STEER_DELTA_UP)
-      else:
-        apply_steer = clip(apply_steer, self.apply_steer_last - P.STEER_DELTA_UP,
-                                        min(self.apply_steer_last + P.STEER_DELTA_DOWN, P.STEER_DELTA_UP))
+      apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steer_torque_driver, P)
 
       lkas_enabled = enabled and not CS.steer_not_allowed and CS.v_ego > 3.
 
       if not lkas_enabled:
         apply_steer = 0
 
-      apply_steer = int(round(apply_steer))
       self.apply_steer_last = apply_steer
       idx = (frame / P.STEER_STEP) % 4
 
@@ -119,7 +111,7 @@ class CarController(object):
         can_sends.append(gmcan.create_steering_control(self.packer_pt,
           canbus.powertrain, apply_steer, idx, lkas_enabled))
       if self.car_fingerprint == CAR.CADILLAC_CT6:
-        can_sends += gmcan.create_steering_control_ct6(self.packer_pt, 
+        can_sends += gmcan.create_steering_control_ct6(self.packer_pt,
           canbus, apply_steer, CS.v_ego, idx, lkas_enabled)
 
     ### GAS/BRAKE ###
@@ -161,7 +153,7 @@ class CarController(object):
 
       # Send dashboard UI commands (ACC status), 25hz
       if (frame % 4) == 0:
-        can_sends.append(gmcan.create_acc_dashboard_command(canbus.powertrain, enabled, hud_v_cruise / CV.MS_TO_KPH, hud_show_car))
+        can_sends.append(gmcan.create_acc_dashboard_command(self.packer_pt, canbus.powertrain, enabled, hud_v_cruise * CV.MS_TO_KPH, hud_show_car))
 
       # Radar needs to know current speed and yaw rate (50hz),
       # and that ADAS is alive (10hz)
