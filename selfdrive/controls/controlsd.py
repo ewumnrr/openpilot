@@ -302,7 +302,7 @@ def data_send(perception_state, plan, plan_ts, CS, CI, CP, VM, state, events, ac
 
   if not passive:
 
-    CC.enabled = isActive(state)
+    CC.enabled = isEnabled(state)
 
     CC.actuators = actuators
 
