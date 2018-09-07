@@ -28,12 +28,12 @@ class CarControllerParams():
 
     self.ADAS_KEEPALIVE_STEP = 10
     # pedal lookups, only for Volt
-    self.MAX_GAS = 3072              # Only a safety limit
-    ZERO_GAS = 2048
+    MAX_GAS = 3072              # Only a safety limit
+    self.ZERO_GAS = 2048
     MAX_BRAKE = 350             # Should be around 3.5m/s^2, including regen
     self.MAX_ACC_REGEN = 1404  # ACC Regen braking is slightly less powerful than max regen paddle
     self.GAS_LOOKUP_BP = [-0.25, 0., 0.5]
-    self.GAS_LOOKUP_V = [self.MAX_ACC_REGEN, ZERO_GAS, self.MAX_GAS]
+    self.GAS_LOOKUP_V = [self.MAX_ACC_REGEN, self.ZERO_GAS, MAX_GAS]
     self.BRAKE_LOOKUP_BP = [-1., -0.25]
     self.BRAKE_LOOKUP_V = [MAX_BRAKE, 0]
 
@@ -133,11 +133,13 @@ class CarController(object):
       if (frame % 4) == 0:
         idx = (frame / 4) % 4
 
-        want_full_stop = enabled and CS.standstill and apply_gas < 2048
-        near_stop = enabled and (CS.v_ego < P.NEAR_STOP_BRAKE_PHASE)
-        can_sends.append(gmcan.create_friction_brake_command(self.packer_ch, canbus.chassis, apply_brake, idx, near_stop, want_full_stop))
+        car_stopping = apply_gas < P.ZERO_GAS
+        at_full_stop = enabled and CS.standstill and car_stopping
+        near_stop = enabled and (CS.v_ego < P.NEAR_STOP_BRAKE_PHASE) and car_stopping
+        can_sends.append(gmcan.create_friction_brake_command(self.packer_ch, canbus.chassis, apply_brake, idx, near_stop, at_full_stop))
 
-        can_sends.append(gmcan.create_gas_regen_command(self.packer_pt, canbus.powertrain, apply_gas, idx, enabled, want_full_stop))
+        at_full_stop = enabled and CS.standstill
+        can_sends.append(gmcan.create_gas_regen_command(self.packer_pt, canbus.powertrain, apply_gas, idx, enabled, at_full_stop))
 
       # Send dashboard UI commands (ACC status), 25hz
       if (frame % 4) == 0:
