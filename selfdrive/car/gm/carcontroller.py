@@ -134,7 +134,7 @@ class CarController(object):
       if apply_brake == 0:
         self.intense_braking = False # We stopped needing friction brake, reset state
 
-      self.intense_braking = self.intense_braking or apply_brake > P.INTENSE_BRAKING_THRESHOLD
+      self.intense_braking = True # Testing
 
       # Gas/regen and brakes - all at 25Hz
       if (frame % 4) == 0:
