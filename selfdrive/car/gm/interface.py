@@ -142,13 +142,13 @@ class CarInterface(object):
     ret.longPidDeadzoneV = [0.]
 
     ret.longitudinalKpBP = [0., 5., 35.]
-    ret.longitudinalKpV = [3.3, 2.425, 2.2]
+    ret.longitudinalKpV = [3.2, 2.425, 2.2]
     ret.longitudinalKiBP = [0., 35.]
-    ret.longitudinalKiV = [0.36, 0.36]
+    ret.longitudinalKiV = [0.40, 0.36]
 
     ret.steerLimitAlert = True
 
-    ret.stoppingControl = False
+    ret.stoppingControl = True
     ret.startAccel = 0.0
 
     ret.steerActuatorDelay = 0.1  # Default delay, not measured yet
