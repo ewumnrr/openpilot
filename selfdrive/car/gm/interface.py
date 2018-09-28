@@ -52,7 +52,13 @@ class CarInterface(object):
 
   @staticmethod
   def compute_gb(accel, speed):
-    return float(accel) / 4.0
+  	# Ripped from compute_gb_honda in Honda's interface.py. Works well off shelf but may need more tuning
+    creep_brake = 0.0
+    creep_speed = 2.3
+    creep_brake_value = 0.15
+    if speed < creep_speed:
+      creep_brake = (creep_speed - speed) / creep_speed * creep_brake_value
+    return float(accel) / 4.8 - creep_brake
 
   @staticmethod
   def calc_accel_override(a_ego, a_target, v_ego, v_target):
@@ -137,15 +143,15 @@ class CarInterface(object):
     ret.longPidDeadzoneBP = [0.]
     ret.longPidDeadzoneV = [0.]
 
-    ret.longitudinalKpBP = [0., 1.5, 35.]
-    ret.longitudinalKpV = [3.2, 2.425, 2.2]
+    ret.longitudinalKpBP = [0., 5., 35.]
+    ret.longitudinalKpV = [1.8, 2.425, 2.2]
     ret.longitudinalKiBP = [0., 35.]
     ret.longitudinalKiV = [0.40, 0.36]
 
     ret.steerLimitAlert = True
 
     ret.stoppingControl = True
-    ret.startAccel = 0.0
+    ret.startAccel = 0.5
 
     ret.steerActuatorDelay = 0.1  # Default delay, not measured yet
     ret.steerRateCost = 1.0
