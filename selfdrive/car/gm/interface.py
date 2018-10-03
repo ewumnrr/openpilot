@@ -54,7 +54,7 @@ class CarInterface(object):
   def compute_gb(accel, speed):
   	# Ripped from compute_gb_honda in Honda's interface.py. Works well off shelf but may need more tuning
     creep_brake = 0.0
-    creep_speed = 2.3
+    creep_speed = 2.68
     creep_brake_value = 0.15
     if speed < creep_speed:
       creep_brake = (creep_speed - speed) / creep_speed * creep_brake_value
@@ -146,7 +146,7 @@ class CarInterface(object):
     ret.longitudinalKpBP = [0., 5., 35.]
     ret.longitudinalKpV = [1.8, 2.425, 2.2]
     ret.longitudinalKiBP = [0., 35.]
-    ret.longitudinalKiV = [0.40, 0.36]
+    ret.longitudinalKiV = [0.33, 0.36]
 
     ret.steerLimitAlert = True
 
