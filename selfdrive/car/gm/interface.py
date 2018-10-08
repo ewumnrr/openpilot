@@ -146,7 +146,7 @@ class CarInterface(object):
     ret.longitudinalKpBP = [0., 5., 35.]
     ret.longitudinalKpV = [1.8, 2.425, 2.2]
     ret.longitudinalKiBP = [0., 35.]
-    ret.longitudinalKiV = [0.33, 0.36]
+    ret.longitudinalKiV = [0.30, 0.36]
 
     ret.steerLimitAlert = True
 
